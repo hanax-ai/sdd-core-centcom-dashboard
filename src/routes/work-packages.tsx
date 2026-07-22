@@ -61,9 +61,20 @@ const kanbanCols: { key: WorkStatus; label: string }[] = [
 type WorkPackageStatusFilter = "all" | WorkStatus;
 
 const kanbanStatuses = kanbanCols.map((col) => col.key);
+const allWorkStatuses: WorkStatus[] = [
+  "not-started",
+  "in-progress",
+  "awaiting-decision",
+  "awaiting-gate-1",
+  "awaiting-gate-2",
+  "blocked",
+  "completed",
+  "deferred",
+  "invalidated",
+];
 
 function isWorkPackageStatusFilter(value: string): value is WorkPackageStatusFilter {
-  return value === "all" || kanbanStatuses.includes(value as WorkStatus);
+  return value === "all" || allWorkStatuses.includes(value as WorkStatus);
 }
 
 function WorkPackagesPage() {
