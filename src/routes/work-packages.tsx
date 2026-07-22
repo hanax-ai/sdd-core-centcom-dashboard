@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-chrome";
 import { StatusBadge, ConfidenceChip } from "@/components/status-badges";
+import { WorkStatusSchema } from "@/data/schemas";
 import type { WorkPackage, WorkStatus } from "@/data/types";
 import { useDataView } from "@/data/scenario-context";
 import { useUrlSearchParam } from "@/hooks/use-url-state";
@@ -60,21 +61,17 @@ const kanbanCols: { key: WorkStatus; label: string }[] = [
 
 type WorkPackageStatusFilter = "all" | WorkStatus;
 
-const kanbanStatuses = kanbanCols.map((col) => col.key);
-const allWorkStatuses: WorkStatus[] = [
-  "not-started",
-  "in-progress",
-  "awaiting-decision",
-  "awaiting-gate-1",
-  "awaiting-gate-2",
-  "blocked",
-  "completed",
-  "deferred",
-  "invalidated",
-];
+const allWorkStatuses = WorkStatusSchema.options;
+
+function formatWorkStatusLabel(status: WorkStatus) {
+  return status
+    .split("-")
+    .map((part) => (part === "gate" ? "Gate" : part[0].toUpperCase() + part.slice(1)))
+    .join(" ");
+}
 
 function isWorkPackageStatusFilter(value: string): value is WorkPackageStatusFilter {
-  return value === "all" || allWorkStatuses.includes(value as WorkStatus);
+  return value === "all" || WorkStatusSchema.safeParse(value).success;
 }
 
 function WorkPackagesPage() {
@@ -183,9 +180,9 @@ function WorkPackagesPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
-            {kanbanCols.map((c) => (
-              <SelectItem key={c.key} value={c.key}>
-                {c.label}
+            {allWorkStatuses.map((statusOption) => (
+              <SelectItem key={statusOption} value={statusOption}>
+                {formatWorkStatusLabel(statusOption)}
               </SelectItem>
             ))}
           </SelectContent>
