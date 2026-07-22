@@ -51,16 +51,18 @@ export const Route = createFileRoute("/")({
 });
 
 function OverviewPage() {
-  const snap = useDataView().snapshot;
-  const pkgs = useDataView().workPackages;
-  const defects = useDataView().defects;
-  const gates = useDataView().gates;
-  const runs = useDataView().verificationRuns;
-  const dels = useDataView().deliverables;
-  const sources = useDataView().sources;
-  const phases = useDataView().phases;
-  const decisions = useDataView().decisions;
-  const events = useDataView().activityEvents;
+  const {
+    snapshot: snap,
+    workPackages: pkgs,
+    defects,
+    gates,
+    verificationRuns: runs,
+    deliverables: dels,
+    sources,
+    phases,
+    decisions,
+    activityEvents: events,
+  } = useDataView();
 
   const completion = planCompletion(pkgs, false, snap.lastSyncedAt);
   const acc = acceptanceCoverage(pkgs, snap.lastSyncedAt);
