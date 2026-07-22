@@ -50,9 +50,9 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="flex flex-col leading-tight">
-              <span className="text-[13px] font-semibold tracking-tight">SDD-Core</span>
+              <span className="text-[13px] font-semibold tracking-tight">SITREP</span>
               <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
-                Command Center
+                Powered by SDD-Core
               </span>
             </div>
           )}
@@ -68,8 +68,8 @@ export function AppSidebar() {
                 return (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
-                      <Link to={item.url}>
-                        <item.icon className="h-4 w-4" />
+                      <Link to={item.url} aria-current={active ? "page" : undefined}>
+                        <item.icon className="h-4 w-4" aria-hidden="true" />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>

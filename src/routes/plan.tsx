@@ -7,24 +7,32 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { PageHeader, EvidenceLegend } from "@/components/page-chrome";
 import { StatusBadge, ConfidenceChip } from "@/components/status-badges";
-import { dataSource } from "@/data/adapter";
+import { useDataView } from "@/data/scenario-context";
+import { phaseCompletion } from "@/data/metrics";
 
 export const Route = createFileRoute("/plan")({
   head: () => ({
     meta: [
-      { title: "Plan & Roadmap · SDD-Core Command Center" },
-      { name: "description", content: "Plan → Phase → Goal → Work Package hierarchy with completion, gates and evidence coverage." },
-      { property: "og:title", content: "Plan & Roadmap · SDD-Core Command Center" },
-      { property: "og:description", content: "Hierarchical roadmap with evidence coverage and gate status." },
+      { title: "Plan & Roadmap · SDD-Core SITREP — Situation Report" },
+      {
+        name: "description",
+        content:
+          "Plan → Phase → Goal → Work Package hierarchy with completion, gates and evidence coverage.",
+      },
+      { property: "og:title", content: "Plan & Roadmap · SDD-Core SITREP — Situation Report" },
+      {
+        property: "og:description",
+        content: "Hierarchical roadmap with evidence coverage and gate status.",
+      },
     ],
   }),
   component: PlanPage,
 });
 
 function PlanPage() {
-  const phases = dataSource.phases();
-  const goals = dataSource.goals();
-  const pkgs = dataSource.workPackages();
+  const phases = useDataView().phases;
+  const goals = useDataView().goals;
+  const pkgs = useDataView().workPackages;
   const [expanded, setExpanded] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(phases.map((p) => [p.id, p.status === "current"])),
   );
@@ -47,18 +55,22 @@ function PlanPage() {
         <CardContent className="space-y-4">
           {phases.map((phase) => {
             const phaseGoals = goals.filter((g) => g.phaseId === phase.id);
-            const phasePkgs = pkgs.filter((w) => w.phaseId === phase.id);
-            const done = phasePkgs.filter((w) => w.status === "completed").length;
-            const total = phasePkgs.filter((w) => w.status !== "deferred" && w.status !== "invalidated").length;
-            const pct = total ? Math.round((done / total) * 100) : 0;
+            const { packages: phasePkgs, done, total, pct } = phaseCompletion(phase, pkgs);
             const open = expanded[phase.id];
             return (
               <div key={phase.id} className="rounded-lg border bg-surface-1">
                 <button
-                  className="w-full flex items-center gap-3 p-4 text-left hover:bg-surface-2 transition-colors"
+                  className="w-full flex items-center gap-3 p-4 text-left hover:bg-surface-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
                   onClick={() => setExpanded((e) => ({ ...e, [phase.id]: !open }))}
+                  aria-expanded={open}
+                  aria-controls={`phase-panel-${phase.id}`}
                 >
-                  {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  {open ? (
+                    <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                  )}
+
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">{phase.name}</span>
@@ -79,41 +91,60 @@ function PlanPage() {
                 </button>
 
                 {open && (
-                  <div className="border-t divide-y">
-                    {phaseGoals.map((g) => {
-                      const gPkgs = pkgs.filter((w) => w.goalId === g.id);
-                      return (
-                        <div key={g.id} className="p-4 space-y-3">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="font-mono">{g.id}</Badge>
-                            <span className="font-medium">{g.title}</span>
-                            <ConfidenceChip confidence={g.provenance.confidence} />
-                          </div>
-                          <div className="grid gap-2 md:grid-cols-2">
-                            {gPkgs.map((w) => (
-                              <div key={w.id} className="rounded-md border bg-card p-3 hover:elev-2 transition-shadow">
-                                <div className="flex items-start justify-between gap-2">
-                                  <div className="min-w-0">
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-mono text-[11px] text-primary">{w.id}</span>
-                                      <StatusBadge status={w.status} />
+                  <div
+                    id={`phase-panel-${phase.id}`}
+                    role="region"
+                    aria-label={`${phase.name} details`}
+                  >
+                    <div className="border-t divide-y">
+                      {phaseGoals.map((g) => {
+                        const gPkgs = pkgs.filter((w) => w.goalId === g.id);
+                        return (
+                          <div key={g.id} className="p-4 space-y-3">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="font-mono">
+                                {g.id}
+                              </Badge>
+                              <span className="font-medium">{g.title}</span>
+                              <ConfidenceChip confidence={g.provenance.confidence} />
+                            </div>
+                            <div className="grid gap-2 md:grid-cols-2">
+                              {gPkgs.map((w) => (
+                                <div
+                                  key={w.id}
+                                  className="rounded-md border bg-card p-3 hover:elev-2 transition-shadow"
+                                >
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-mono text-[11px] text-primary">
+                                          {w.id}
+                                        </span>
+                                        <StatusBadge status={w.status} />
+                                      </div>
+                                      <div className="mt-1 text-sm font-medium truncate">
+                                        {w.title}
+                                      </div>
                                     </div>
-                                    <div className="mt-1 text-sm font-medium truncate">{w.title}</div>
+                                  </div>
+                                  <div className="mt-3 flex items-center gap-3 text-[11px] text-muted-foreground font-mono">
+                                    <span>
+                                      ACC {w.acceptancePassed}/{w.acceptanceTotal}
+                                    </span>
+                                    <span>EV {w.evidenceCount}</span>
+                                    <span className="ml-auto">
+                                      {formatDistanceToNow(new Date(w.lastActivityAt), {
+                                        addSuffix: true,
+                                      })}
+                                    </span>
                                   </div>
                                 </div>
-                                <div className="mt-3 flex items-center gap-3 text-[11px] text-muted-foreground font-mono">
-                                  <span>ACC {w.acceptancePassed}/{w.acceptanceTotal}</span>
-                                  <span>EV {w.evidenceCount}</span>
-                                  <span className="ml-auto">
-                                    {formatDistanceToNow(new Date(w.lastActivityAt), { addSuffix: true })}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>

@@ -1,5 +1,5 @@
 /**
- * SDD-Core Command Center — typed entities.
+ * SDD-Core SITREP — Situation Report — typed entities.
  * Every source-derived entity carries provenance so the UI can never
  * silently promote assumptions to facts.
  */
@@ -23,7 +23,8 @@ export type SourceType =
   | "verify-run"
   | "deliverables-register"
   | "standards-register"
-  | "manual-annotation";
+  | "manual-annotation"
+  | "data-integrity";
 
 export interface Provenance {
   sourceType: SourceType;
@@ -97,7 +98,7 @@ export interface AcceptanceCriterion {
 }
 
 export interface WorkPackage {
-  id: string;              // e.g. WP-R1
+  id: string; // e.g. WP-R1
   goalId: string;
   phaseId: string;
   title: string;
@@ -148,7 +149,8 @@ export interface Defect {
   title: string;
   severity: Severity;
   state: DefectState;
-  source: "github-issue" | "plan-defined" | "review-finding" | "data-integrity" | "risk" | "unknown";
+  source:
+    "github-issue" | "plan-defined" | "review-finding" | "data-integrity" | "risk" | "unknown";
   sourceRef?: string;
   workPackageId?: string;
   artifact?: string;

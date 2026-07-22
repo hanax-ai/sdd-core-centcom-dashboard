@@ -43,7 +43,11 @@ export function StatusBadge({ status, className }: { status: WorkStatus; classNa
 
 export function SeverityBadge({ severity }: { severity: "critical" | "high" | "medium" | "low" }) {
   const tone =
-    severity === "critical" || severity === "high" ? "blocked" : severity === "medium" ? "gate" : "deferred";
+    severity === "critical" || severity === "high"
+      ? "blocked"
+      : severity === "medium"
+        ? "gate"
+        : "deferred";
   return (
     <span className={badge({ tone })}>
       <span className="h-1.5 w-1.5 rounded-full bg-current" />
@@ -52,7 +56,11 @@ export function SeverityBadge({ severity }: { severity: "critical" | "high" | "m
   );
 }
 
-export function ConfidenceChip({ confidence }: { confidence: "verified" | "derived" | "declared" | "unknown" }) {
+export function ConfidenceChip({
+  confidence,
+}: {
+  confidence: "verified" | "derived" | "declared" | "unknown";
+}) {
   const tone =
     confidence === "verified"
       ? "completed"
@@ -64,9 +72,19 @@ export function ConfidenceChip({ confidence }: { confidence: "verified" | "deriv
   return <span className={badge({ tone })}>{confidence}</span>;
 }
 
-export function FreshnessPill({ freshness }: { freshness: "fresh" | "aging" | "stale" | "partial" }) {
+export function FreshnessPill({
+  freshness,
+}: {
+  freshness: "fresh" | "aging" | "stale" | "partial";
+}) {
   const tone =
-    freshness === "fresh" ? "completed" : freshness === "aging" ? "gate" : freshness === "partial" ? "progress" : "blocked";
+    freshness === "fresh"
+      ? "completed"
+      : freshness === "aging"
+        ? "gate"
+        : freshness === "partial"
+          ? "progress"
+          : "blocked";
   return (
     <span className={cn(badge({ tone }), "uppercase tracking-wider text-[10px]")}>
       <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />

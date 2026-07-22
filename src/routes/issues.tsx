@@ -1,23 +1,50 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { AlertCircle, Ban, ExternalLink } from "lucide-react";
 import { formatDistanceToNow, differenceInDays } from "date-fns";
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip as ReTooltip, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip as ReTooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/page-chrome";
 import { SeverityBadge, ConfidenceChip } from "@/components/status-badges";
-import { dataSource } from "@/data/adapter";
+import { useDataView } from "@/data/scenario-context";
+import { useUrlSearchParam } from "@/hooks/use-url-state";
+import { useHighlight } from "@/hooks/use-highlight";
 
 export const Route = createFileRoute("/issues")({
   head: () => ({
     meta: [
-      { title: "Issues & Defects · SDD-Core Command Center" },
-      { name: "description", content: "GitHub issues, plan-defined defects, review findings, data-integrity alerts and risks — kept explicitly separate." },
-      { property: "og:title", content: "Issues & Defects · SDD-Core Command Center" },
-      { property: "og:description", content: "Zero open GitHub issues ≠ zero defects. All defect sources tracked distinctly." },
+      { title: "Issues & Defects · SDD-Core SITREP — Situation Report" },
+      {
+        name: "description",
+        content:
+          "GitHub issues, plan-defined defects, review findings, data-integrity alerts and risks — kept explicitly separate.",
+      },
+      { property: "og:title", content: "Issues & Defects · SDD-Core SITREP — Situation Report" },
+      {
+        property: "og:description",
+        content: "Zero open GitHub issues ≠ zero defects. All defect sources tracked distinctly.",
+      },
     ],
   }),
   component: IssuesPage,
@@ -28,23 +55,34 @@ const sourceLabels: Record<string, string> = {
   "plan-defined": "Plan-defined",
   "review-finding": "Review finding",
   "data-integrity": "Data-integrity alert",
-  "risk": "Risk",
-  "unknown": "Unknown / evidence gap",
+  risk: "Risk",
+  unknown: "Unknown / evidence gap",
 };
 
+type IssueSource = keyof typeof sourceLabels;
+type IssueTab = "all" | IssueSource;
+
+const sourceKeys = Object.keys(sourceLabels) as IssueSource[];
+
+function isIssueTab(value: string): value is IssueTab {
+  return value === "all" || sourceKeys.includes(value as IssueSource);
+}
+
 function IssuesPage() {
-  const defects = dataSource.defects();
-  const snap = dataSource.snapshot();
-  const [tab, setTab] = useState("all");
+  const defects = useDataView().defects;
+  const snap = useDataView().snapshot;
+  const [tab, setTab] = useUrlSearchParam<IssueTab>("tab", "all", isIssueTab);
+  const { highlightId, isHighlighted, highlightRef } = useHighlight();
 
   const grouped = useMemo(() => {
     return Object.fromEntries(
-      Object.keys(sourceLabels).map((k) => [k, defects.filter((d) => d.source === k)]),
-    );
+      sourceKeys.map((key) => [key, defects.filter((d) => d.source === key)]),
+    ) as Record<IssueSource, typeof defects>;
   }, [defects]);
 
   const severityData = ["critical", "high", "medium", "low"].map((s) => ({
-    name: s, value: defects.filter((d) => d.severity === s).length,
+    name: s,
+    value: defects.filter((d) => d.severity === s).length,
   }));
 
   const agingData = defects.map((d) => ({
@@ -52,9 +90,23 @@ function IssuesPage() {
     age: Math.max(1, differenceInDays(new Date(snap.lastSyncedAt), new Date(d.discoveredAt))),
   }));
 
-  const sevColors = ["var(--status-blocked)", "var(--status-blocked)", "var(--status-gate)", "var(--status-deferred)"];
+  const sevColors = [
+    "var(--status-blocked)",
+    "var(--status-blocked)",
+    "var(--status-gate)",
+    "var(--status-deferred)",
+  ];
 
-  const list = tab === "all" ? defects : grouped[tab] ?? [];
+  const list = tab === "all" ? defects : grouped[tab];
+
+  useEffect(() => {
+    if (!highlightId || tab === "all") return;
+
+    const target = defects.find((defect) => defect.id === highlightId);
+    if (target && target.source !== tab) {
+      setTab("all");
+    }
+  }, [highlightId, tab, defects, setTab]);
 
   return (
     <div className="space-y-6">
@@ -68,9 +120,13 @@ function IssuesPage() {
         <CardContent className="p-4 flex items-start gap-3">
           <AlertCircle className="h-5 w-5 shrink-0 text-status-gate mt-0.5" />
           <div className="text-sm">
-            <div className="font-semibold">GitHub issues observed: {snap.openIssues}. Plan/review defects observed: {defects.filter((d) => d.source !== "github-issue").length}.</div>
+            <div className="font-semibold">
+              GitHub issues observed: {snap.openIssues}. Plan/review defects observed:{" "}
+              {defects.filter((d) => d.source !== "github-issue").length}.
+            </div>
             <div className="text-muted-foreground mt-1">
-              A "no open issues" state on GitHub is not equivalent to a healthy defect profile. Review the distinct sources below.
+              A "no open issues" state on GitHub is not equivalent to a healthy defect profile.
+              Review the distinct sources below.
             </div>
           </div>
         </CardContent>
@@ -86,10 +142,25 @@ function IssuesPage() {
           <CardContent className="h-56">
             <ResponsiveContainer>
               <PieChart>
-                <Pie data={severityData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80}>
-                  {severityData.map((_, i) => <Cell key={i} fill={sevColors[i]} />)}
+                <Pie
+                  data={severityData}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={50}
+                  outerRadius={80}
+                >
+                  {severityData.map((_, i) => (
+                    <Cell key={i} fill={sevColors[i]} />
+                  ))}
                 </Pie>
-                <ReTooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 6, fontSize: 12 }} />
+                <ReTooltip
+                  contentStyle={{
+                    background: "var(--popover)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 6,
+                    fontSize: 12,
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -107,7 +178,14 @@ function IssuesPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-line)" />
                 <XAxis dataKey="id" tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} />
                 <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
-                <ReTooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 6, fontSize: 12 }} />
+                <ReTooltip
+                  contentStyle={{
+                    background: "var(--popover)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 6,
+                    fontSize: 12,
+                  }}
+                />
                 <Bar dataKey="age" fill="var(--chart-3)" radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -115,11 +193,13 @@ function IssuesPage() {
         </Card>
       </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
+      <Tabs value={tab} onValueChange={(value) => isIssueTab(value) && setTab(value)}>
         <TabsList className="w-full justify-start flex-wrap h-auto">
           <TabsTrigger value="all">All ({defects.length})</TabsTrigger>
-          {Object.entries(sourceLabels).map(([k, label]) => (
-            <TabsTrigger key={k} value={k}>{label} ({grouped[k]?.length ?? 0})</TabsTrigger>
+          {sourceKeys.map((key) => (
+            <TabsTrigger key={key} value={key}>
+              {sourceLabels[key]} ({grouped[key].length})
+            </TabsTrigger>
           ))}
         </TabsList>
         <TabsContent value={tab} className="mt-4">
@@ -140,15 +220,27 @@ function IssuesPage() {
                 </TableHeader>
                 <TableBody>
                   {list.map((d) => (
-                    <TableRow key={d.id}>
+                    <TableRow
+                      key={d.id}
+                      ref={highlightRef(d.id) as unknown as React.Ref<HTMLTableRowElement>}
+                      className={
+                        isHighlighted(d.id)
+                          ? "ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/5"
+                          : ""
+                      }
+                    >
                       <TableCell className="font-mono text-xs text-primary">{d.id}</TableCell>
                       <TableCell className="max-w-md">
                         <div className="truncate">{d.title}</div>
                         {d.workPackageId && (
-                          <div className="text-[11px] text-muted-foreground font-mono">→ {d.workPackageId}</div>
+                          <div className="text-[11px] text-muted-foreground font-mono">
+                            → {d.workPackageId}
+                          </div>
                         )}
                       </TableCell>
-                      <TableCell><SeverityBadge severity={d.severity} /></TableCell>
+                      <TableCell>
+                        <SeverityBadge severity={d.severity} />
+                      </TableCell>
                       <TableCell className="text-xs">{d.state}</TableCell>
                       <TableCell className="text-xs">{sourceLabels[d.source]}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">
@@ -156,16 +248,31 @@ function IssuesPage() {
                       </TableCell>
                       <TableCell>
                         {d.hasGithubIssue ? (
-                          <Badge variant="outline" className="gap-1"><ExternalLink className="h-3 w-3" />Yes</Badge>
+                          <Badge variant="outline" className="gap-1">
+                            <ExternalLink className="h-3 w-3" />
+                            Yes
+                          </Badge>
                         ) : (
-                          <Badge variant="outline" className="gap-1 text-muted-foreground"><Ban className="h-3 w-3" />No GH issue</Badge>
+                          <Badge variant="outline" className="gap-1 text-muted-foreground">
+                            <Ban className="h-3 w-3" />
+                            No GH issue
+                          </Badge>
                         )}
                       </TableCell>
-                      <TableCell><ConfidenceChip confidence={d.provenance.confidence} /></TableCell>
+                      <TableCell>
+                        <ConfidenceChip confidence={d.provenance.confidence} />
+                      </TableCell>
                     </TableRow>
                   ))}
                   {list.length === 0 && (
-                    <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground italic">No entries in this source</TableCell></TableRow>
+                    <TableRow>
+                      <TableCell
+                        colSpan={8}
+                        className="text-center py-8 text-muted-foreground italic"
+                      >
+                        No entries in this source
+                      </TableCell>
+                    </TableRow>
                   )}
                 </TableBody>
               </Table>
