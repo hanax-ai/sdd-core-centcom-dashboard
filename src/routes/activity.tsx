@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/page-chrome";
 import { ConfidenceChip } from "@/components/status-badges";
 import { useDataView } from "@/data/scenario-context";
+import { commitVelocity } from "@/data/metrics";
 
 export const Route = createFileRoute("/activity")({
   head: () => ({
@@ -54,22 +55,7 @@ const kindIcon: Record<string, React.ReactNode> = {
 
 function ActivityPage() {
   const events = useDataView().activityEvents;
-
-  // Deterministic: count only fixture-observed commit events per day. No randomness, no padding.
-  const velocity = [
-    "Jul 14",
-    "Jul 15",
-    "Jul 16",
-    "Jul 17",
-    "Jul 18",
-    "Jul 19",
-    "Jul 20",
-    "Jul 21",
-  ].map((d) => ({
-    day: d,
-    commits: events.filter((e) => e.kind === "commit" && format(new Date(e.at), "MMM d") === d)
-      .length,
-  }));
+  const velocity = commitVelocity(events);
 
   return (
     <div className="space-y-6">

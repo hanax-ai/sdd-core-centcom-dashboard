@@ -9,7 +9,7 @@
  * The scenario param is preserved automatically because we use the
  * router's `search` function form.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Boxes,
@@ -41,13 +41,14 @@ interface Entry {
   keywords: string;
   route: string;
   group: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
 }
 
 export function CommandPalette() {
   const view = useDataView();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -188,15 +189,25 @@ export function CommandPalette() {
         </kbd>
       </Button>
 
-      <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Type an id, title, owner, severity… (⌘K to toggle)" />
+      <CommandDialog
+        open={open}
+        onOpenChange={(nextOpen) => {
+          setOpen(nextOpen);
+          if (!nextOpen) setQuery("");
+        }}
+      >
+        <CommandInput
+          value={query}
+          onValueChange={setQuery}
+          placeholder="Type an id, title, owner, severity… (⌘K to toggle)"
+        />
         <CommandList>
           <CommandEmpty>No matches in the current scenario.</CommandEmpty>
           {grouped.map(([group, items], idx) => (
             <div key={group}>
               {idx > 0 && <CommandSeparator />}
               <CommandGroup heading={`${group} (${items.length})`}>
-                {items.slice(0, 50).map((entry) => {
+                {(query ? items : items.slice(0, 50)).map((entry) => {
                   const Icon = entry.icon;
                   return (
                     <CommandItem

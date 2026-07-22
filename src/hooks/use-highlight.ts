@@ -29,8 +29,12 @@ export function useHighlight() {
 
   const highlightRef = useCallback(
     (id: string) => (node: HTMLElement | null) => {
-      if (node && id === highlightId) {
+      if (id !== highlightId) return;
+
+      if (node) {
         targetRef.current = node;
+      } else if (targetRef.current) {
+        targetRef.current = null;
       }
     },
     [highlightId],

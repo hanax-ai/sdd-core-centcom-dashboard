@@ -323,7 +323,7 @@ export const decisions: Decision[] = [
     blockingScope: "WP-O1 + 3 register rows",
     ageDays: 0,
     workPackageId: "WP-O1",
-    provenance: p({ sourceType: "data-integrity" as never, confidence: "derived" }),
+    provenance: p({ sourceType: "data-integrity", confidence: "derived" }),
   },
 ];
 

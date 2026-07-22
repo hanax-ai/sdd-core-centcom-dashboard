@@ -12,7 +12,7 @@ An **evidence-backed, read-only executive dashboard** for the [`hanax-ai/sdd-cor
 2. **One version of the truth** — every KPI, ratio, and bucket is computed by a single helper in `src/data/metrics.ts`. Routes never re-derive math.
 3. **Deterministic by construction** — no `Math.random`, no `Date.now` in render paths. Scenarios are pure functions over frozen fixtures.
 4. **Read-only boundary** — no GitHub tokens live in the browser. The adapter is the only seam that ever touches source data.
-5. **Every claim is provenanced** — each entity carries `provenance { sourceType, sourcePath, observedAt, confidence, parsingWarnings }` and the UI surfaces it.
+5. **Every claim is provenanced** — each entity carries `provenance { sourceType, sourceLocation, sourceRevision, observedAt, confidence, parsingWarnings }` and the UI surfaces it.
 
 ---
 
@@ -57,7 +57,7 @@ fixtures.ts ──► schemas.ts (Zod) ──► adapter.ts ──► scenarios.
 
 | CP    | What it enforces                                           | Evidence                                                                                                                                                                                                                       |
 | ----- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| CP-1  | No `Math.random` / non-determinism                         | `rg "Math.random\|Date.now\(\)" src` returns no render-path hits                                                                                                                                                               |
+| CP-1  | No `Math.random` / non-determinism                         | rg "Math.random&#124;Date.now\(\)" src returns no render-path hits                                                                                                                                                             |
 | CP-2  | Zod schema boundary on all fixtures                        | `src/data/schemas.ts` + `src/data/__tests__/adapter.schemas.test.ts`                                                                                                                                                           |
 | CP-3  | Centralized formulas (one version of truth)                | `FORMULAS` in `src/data/metrics.ts`; `metrics-centralized.test.ts`                                                                                                                                                             |
 | CP-4  | `decisionDebt` population invariants                       | `metrics.test.ts` locks Awaiting WPs + Pending Gates                                                                                                                                                                           |

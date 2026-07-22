@@ -1,4 +1,5 @@
 import type {
+  ActivityEvent,
   Defect,
   Deliverable,
   GateEvent,
@@ -64,19 +65,24 @@ export const FORMULAS = {
     label: "Stale sources",
     formula: "sources older than configured freshness threshold",
   },
-  workPackageAcceptance: {
-    label: "Work package acceptance",
-    formula: "passed acceptance criteria ÷ defined acceptance criteria (per work package)",
-  },
-  phaseCompletion: {
-    label: "Phase completion",
-    formula: "completed items in phase ÷ in-scope items in phase (excludes deferred & invalidated)",
-  },
-  deliverableDrift: {
-    label: "Deliverable drift",
-    formula: "register rows where observedVersion ≠ registerVersion",
-  },
 } as const;
+
+const ACTIVITY_WINDOW = [
+  "Jul 14",
+  "Jul 15",
+  "Jul 16",
+  "Jul 17",
+  "Jul 18",
+  "Jul 19",
+  "Jul 20",
+  "Jul 21",
+] as const;
+
+export interface ActivityVelocityPoint {
+  day: (typeof ACTIVITY_WINDOW)[number];
+  commits: number;
+  approvals: number;
+}
 
 // ---------- Shared math ----------
 
@@ -85,6 +91,18 @@ const asPct = (n: number, d: number) => (d === 0 ? 0 : Math.round((n / d) * 1000
 
 /** Ratio → integer percent (0..100). Returns 0 on empty denominator. */
 export const ratioToPct = (n: number, d: number) => (d === 0 ? 0 : Math.round((n / d) * 100));
+
+export function commitVelocity(events: ActivityEvent[]): ActivityVelocityPoint[] {
+  return ACTIVITY_WINDOW.map((day) => ({
+    day,
+    commits: events.filter(
+      (event) => event.kind === "commit" && event.at.startsWith(`2026-07-${day.slice(4)}`),
+    ).length,
+    approvals: events.filter(
+      (event) => event.kind === "approval" && event.at.startsWith(`2026-07-${day.slice(4)}`),
+    ).length,
+  }));
+}
 
 // ---------- Top-line KPI metrics ----------
 

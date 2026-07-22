@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { AlertCircle, Ban, ExternalLink } from "lucide-react";
 import { formatDistanceToNow, differenceInDays } from "date-fns";
 import {
@@ -59,16 +59,25 @@ const sourceLabels: Record<string, string> = {
   unknown: "Unknown / evidence gap",
 };
 
+type IssueSource = keyof typeof sourceLabels;
+type IssueTab = "all" | IssueSource;
+
+const sourceKeys = Object.keys(sourceLabels) as IssueSource[];
+
+function isIssueTab(value: string): value is IssueTab {
+  return value === "all" || sourceKeys.includes(value as IssueSource);
+}
+
 function IssuesPage() {
   const defects = useDataView().defects;
   const snap = useDataView().snapshot;
-  const [tab, setTab] = useUrlSearchParam<string>("tab", "all");
-  const { isHighlighted, highlightRef } = useHighlight();
+  const [tab, setTab] = useUrlSearchParam<IssueTab>("tab", "all", isIssueTab);
+  const { highlightId, isHighlighted, highlightRef } = useHighlight();
 
   const grouped = useMemo(() => {
     return Object.fromEntries(
-      Object.keys(sourceLabels).map((k) => [k, defects.filter((d) => d.source === k)]),
-    );
+      sourceKeys.map((key) => [key, defects.filter((d) => d.source === key)]),
+    ) as Record<IssueSource, typeof defects>;
   }, [defects]);
 
   const severityData = ["critical", "high", "medium", "low"].map((s) => ({
@@ -88,7 +97,16 @@ function IssuesPage() {
     "var(--status-deferred)",
   ];
 
-  const list = tab === "all" ? defects : (grouped[tab] ?? []);
+  const list = tab === "all" ? defects : grouped[tab];
+
+  useEffect(() => {
+    if (!highlightId || tab === "all") return;
+
+    const target = defects.find((defect) => defect.id === highlightId);
+    if (target && target.source !== tab) {
+      setTab("all");
+    }
+  }, [highlightId, tab, defects, setTab]);
 
   return (
     <div className="space-y-6">
@@ -175,12 +193,12 @@ function IssuesPage() {
         </Card>
       </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
+      <Tabs value={tab} onValueChange={(value) => isIssueTab(value) && setTab(value)}>
         <TabsList className="w-full justify-start flex-wrap h-auto">
           <TabsTrigger value="all">All ({defects.length})</TabsTrigger>
-          {Object.entries(sourceLabels).map(([k, label]) => (
-            <TabsTrigger key={k} value={k}>
-              {label} ({grouped[k]?.length ?? 0})
+          {sourceKeys.map((key) => (
+            <TabsTrigger key={key} value={key}>
+              {sourceLabels[key]} ({grouped[key].length})
             </TabsTrigger>
           ))}
         </TabsList>

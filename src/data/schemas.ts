@@ -36,7 +36,8 @@ export const SourceTypeSchema = z.enum([
   "data-integrity",
 ]);
 
-const isoString = z.string().min(1, "ISO timestamp required");
+const isoString = z.string().datetime({ offset: true, message: "ISO timestamp required" });
+const isoDate = z.string().date("ISO date required");
 
 export const ProvenanceSchema = z.object({
   sourceType: SourceTypeSchema,
@@ -230,8 +231,8 @@ export const DeliverableSchema = z.object({
   owner: z.string(),
   operatingAgent: z.string(),
   status: z.enum(["active", "deprecated", "draft"]),
-  lastReview: isoString.optional(),
-  nextReviewDue: isoString.optional(),
+  lastReview: isoDate.optional(),
+  nextReviewDue: isoDate.optional(),
   exception: z.string().optional(),
   staleness: FreshnessSchema,
   observedVersion: z.string().optional(),

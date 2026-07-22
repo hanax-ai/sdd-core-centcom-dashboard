@@ -19,9 +19,11 @@ import { KpiCard } from "@/components/kpi-card";
 import { StatusBadge, ConfidenceChip } from "@/components/status-badges";
 import {
   acceptanceCoverage,
+  commitVelocity,
   decisionDebt,
   defectLoad,
   evidenceCoverage,
+  gateSplit,
   planCompletion,
   staleSources,
   statusBuckets,
@@ -58,6 +60,7 @@ function OverviewPage() {
   const sources = useDataView().sources;
   const phases = useDataView().phases;
   const decisions = useDataView().decisions;
+  const events = useDataView().activityEvents;
 
   const completion = planCompletion(pkgs, false, snap.lastSyncedAt);
   const acc = acceptanceCoverage(pkgs, snap.lastSyncedAt);
@@ -68,6 +71,7 @@ function OverviewPage() {
   const stale = staleSources(sources, snap.lastSyncedAt);
 
   const buckets = statusBuckets(pkgs);
+  const gateInfo = gateSplit(gates);
   const total = pkgs.length;
 
   const attention = [
@@ -108,16 +112,7 @@ function OverviewPage() {
     },
   ];
 
-  const activityChart = [
-    { day: "Jul 14", commits: 3, approvals: 1 },
-    { day: "Jul 15", commits: 2, approvals: 0 },
-    { day: "Jul 16", commits: 1, approvals: 0 },
-    { day: "Jul 17", commits: 4, approvals: 0 },
-    { day: "Jul 18", commits: 3, approvals: 0 },
-    { day: "Jul 19", commits: 2, approvals: 1 },
-    { day: "Jul 20", commits: 1, approvals: 1 },
-    { day: "Jul 21", commits: 5, approvals: 0 },
-  ];
+  const activityChart = commitVelocity(events);
 
   const nextActions = [
     {
@@ -204,11 +199,7 @@ function OverviewPage() {
         <KpiCard metric={completion} accent="completed" hint="Excludes deferred & invalidated" />
         <KpiCard metric={acc} accent="primary" />
         <KpiCard metric={ev} accent="primary" />
-        <KpiCard
-          metric={debt}
-          accent="gate"
-          hint={`${gates.filter((g) => g.status === "pending").length} pending gates`}
-        />
+        <KpiCard metric={debt} accent="gate" hint={`${gateInfo.pending.length} pending gates`} />
         <KpiCard metric={dl} accent="blocked" hint="GitHub issues ≠ all defects" />
         <KpiCard metric={vh} accent="gate" hint="Unknown ≠ Pass" />
         <KpiCard
@@ -216,6 +207,8 @@ function OverviewPage() {
             ...{
               label: "Blocked items",
               value: buckets.blocked,
+              numerator: buckets.blocked,
+              denominator: total,
               formula: "work packages in 'blocked' state",
               scope: `${total} work packages`,
               observedAt: snap.lastSyncedAt,
@@ -303,12 +296,14 @@ function OverviewPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-status-gate" /> Needs attention
-            </CardTitle>
-            <span className="text-[11px] font-mono text-muted-foreground">
-              ranked by severity · authority · age
-            </span>
+            <div>
+              <CardTitle className="text-sm font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-status-gate" /> Needs attention
+              </CardTitle>
+              <div className="mt-1 text-[11px] font-mono text-muted-foreground">
+                Phase 1 static content
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-2">
             {attention.map((a) => (

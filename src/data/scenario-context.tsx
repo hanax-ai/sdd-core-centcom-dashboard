@@ -6,7 +6,7 @@
  * the URL, validates the id, applies the deterministic transform, and
  * memoizes the resulting DataView for the render.
  */
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
 import { useRouterState, useNavigate, useLocation } from "@tanstack/react-router";
 import {
   DEFAULT_SCENARIO,
@@ -46,28 +46,34 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
 
   const view = useMemo(() => applyScenario(baseDataView(), id), [id]);
 
-  const setScenario = (next: ScenarioId) => {
-    void navigate({
-      to: location.pathname,
-      search: (prev: Record<string, unknown>) => {
-        const rest = { ...prev };
-        if (next === DEFAULT_SCENARIO) {
-          delete rest.scenario;
-          return rest;
-        }
-        return { ...rest, scenario: next };
-      },
-      replace: true,
-    });
-  };
+  const setScenario = useCallback(
+    (next: ScenarioId) => {
+      void navigate({
+        to: location.pathname,
+        search: (prev: Record<string, unknown>) => {
+          const rest = { ...prev };
+          if (next === DEFAULT_SCENARIO) {
+            delete rest.scenario;
+            return rest;
+          }
+          return { ...rest, scenario: next };
+        },
+        replace: true,
+      });
+    },
+    [navigate, location.pathname],
+  );
 
-  const value: ScenarioContextValue = {
-    id,
-    meta: getScenarioMeta(id),
-    all: SCENARIOS,
-    view,
-    setScenario,
-  };
+  const value = useMemo<ScenarioContextValue>(
+    () => ({
+      id,
+      meta: getScenarioMeta(id),
+      all: SCENARIOS,
+      view,
+      setScenario,
+    }),
+    [id, view, setScenario],
+  );
 
   return <ScenarioContext.Provider value={value}>{children}</ScenarioContext.Provider>;
 }

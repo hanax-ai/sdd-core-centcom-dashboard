@@ -17,6 +17,12 @@ import { deliverableDrift, deliverableExceptions } from "@/data/metrics";
 import { useUrlSearchParam } from "@/hooks/use-url-state";
 import { useHighlight } from "@/hooks/use-highlight";
 
+type DeliverableFilter = "all" | "drift" | "exception";
+
+function isDeliverableFilter(value: string): value is DeliverableFilter {
+  return value === "all" || value === "drift" || value === "exception";
+}
+
 export const Route = createFileRoute("/deliverables")({
   head: () => ({
     meta: [
@@ -42,7 +48,11 @@ function DeliverablesPage() {
   const dels = useDataView().deliverables;
   const drift = deliverableDrift(dels);
   const exceptions = deliverableExceptions(dels);
-  const [filter, setFilter] = useUrlSearchParam<string>("filter", "all");
+  const [filter, setFilter] = useUrlSearchParam<DeliverableFilter>(
+    "filter",
+    "all",
+    isDeliverableFilter,
+  );
   const { isHighlighted, highlightRef } = useHighlight();
 
   const visible = filter === "drift" ? drift : filter === "exception" ? exceptions : dels;

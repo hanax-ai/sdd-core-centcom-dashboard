@@ -58,6 +58,14 @@ const kanbanCols: { key: WorkStatus; label: string }[] = [
   { key: "deferred", label: "Deferred" },
 ];
 
+type WorkPackageStatusFilter = "all" | WorkStatus;
+
+const kanbanStatuses = kanbanCols.map((col) => col.key);
+
+function isWorkPackageStatusFilter(value: string): value is WorkPackageStatusFilter {
+  return value === "all" || kanbanStatuses.includes(value as WorkStatus);
+}
+
 function WorkPackagesPage() {
   const pkgs = useDataView().workPackages;
   const [view, setView] = useUrlSearchParam<"table" | "kanban">(
@@ -66,9 +74,15 @@ function WorkPackagesPage() {
     (v): v is "table" | "kanban" => v === "table" || v === "kanban",
   );
   const [query, setQuery] = useUrlSearchParam<string>("q", "");
-  const [status, setStatus] = useUrlSearchParam<string>("status", "all");
-  const [selected, setSelected] = useState<WorkPackage | null>(null);
+  const [status, setStatus] = useUrlSearchParam<WorkPackageStatusFilter>(
+    "status",
+    "all",
+    isWorkPackageStatusFilter,
+  );
+  const [selectedId, setSelectedId] = useState<WorkPackage["id"] | null>(null);
   const { isHighlighted, highlightRef } = useHighlight();
+
+  const selected = selectedId ? (pkgs.find((pkg) => pkg.id === selectedId) ?? null) : null;
 
   const filtered = useMemo(() => {
     return pkgs.filter((w) => {
@@ -149,7 +163,10 @@ function WorkPackagesPage() {
           className="h-8 w-64 font-mono text-xs"
         />
 
-        <Select value={status} onValueChange={setStatus}>
+        <Select
+          value={status}
+          onValueChange={(value) => isWorkPackageStatusFilter(value) && setStatus(value)}
+        >
           <SelectTrigger className="h-8 w-56 text-xs">
             <SelectValue />
           </SelectTrigger>
@@ -188,11 +205,11 @@ function WorkPackagesPage() {
                   <TableRow
                     key={w.id}
                     ref={highlightRef(w.id) as unknown as React.Ref<HTMLTableRowElement>}
-                    onClick={() => setSelected(w)}
+                    onClick={() => setSelectedId(w.id)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        setSelected(w);
+                        setSelectedId(w.id);
                       }
                     }}
                     role="button"
@@ -245,7 +262,7 @@ function WorkPackagesPage() {
                     <button
                       key={w.id}
                       ref={highlightRef(w.id) as unknown as React.Ref<HTMLButtonElement>}
-                      onClick={() => setSelected(w)}
+                      onClick={() => setSelectedId(w.id)}
                       className={`w-full text-left rounded-md border bg-card p-3 hover:elev-2 transition-shadow ${isHighlighted(w.id) ? "ring-2 ring-primary" : ""}`}
                     >
                       <div className="flex items-center gap-2">
@@ -275,7 +292,7 @@ function WorkPackagesPage() {
         </div>
       )}
 
-      <Sheet open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+      <Sheet open={!!selected} onOpenChange={(open) => !open && setSelectedId(null)}>
         <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
           {selected && (
             <>
