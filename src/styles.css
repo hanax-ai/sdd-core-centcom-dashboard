@@ -1,0 +1,269 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================
+ * SDD-Core Command Center — Mission Control design tokens
+ * Dark-first. Deep graphite/navy surfaces. Semantic status colors.
+ * ============================================================ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+
+  /* Status palette — evidence-grade semantics */
+  --color-status-completed: var(--status-completed);
+  --color-status-completed-foreground: var(--status-completed-foreground);
+  --color-status-progress: var(--status-progress);
+  --color-status-progress-foreground: var(--status-progress-foreground);
+  --color-status-gate: var(--status-gate);
+  --color-status-gate-foreground: var(--status-gate-foreground);
+  --color-status-blocked: var(--status-blocked);
+  --color-status-blocked-foreground: var(--status-blocked-foreground);
+  --color-status-deferred: var(--status-deferred);
+  --color-status-deferred-foreground: var(--status-deferred-foreground);
+  --color-status-unknown: var(--status-unknown);
+  --color-status-unknown-foreground: var(--status-unknown-foreground);
+
+  /* Surfaces */
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-grid-line: var(--grid-line);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* Light theme — refined, still executive */
+:root {
+  --radius: 0.5rem;
+
+  --background: oklch(0.985 0.003 240);
+  --foreground: oklch(0.18 0.02 245);
+
+  --surface-1: oklch(1 0 0);
+  --surface-2: oklch(0.97 0.005 240);
+  --surface-3: oklch(0.94 0.008 240);
+  --grid-line: oklch(0.9 0.01 240);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.02 245);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.02 245);
+
+  --primary: oklch(0.55 0.15 230);      /* cyan/blue — active */
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.94 0.008 240);
+  --secondary-foreground: oklch(0.22 0.03 245);
+  --muted: oklch(0.94 0.008 240);
+  --muted-foreground: oklch(0.5 0.02 245);
+  --accent: oklch(0.92 0.02 230);
+  --accent-foreground: oklch(0.22 0.03 245);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.9 0.01 240);
+  --input: oklch(0.9 0.01 240);
+  --ring: oklch(0.55 0.15 230);
+
+  --status-completed: oklch(0.62 0.15 155);      /* emerald */
+  --status-completed-foreground: oklch(0.99 0 0);
+  --status-progress: oklch(0.6 0.16 230);        /* cyan */
+  --status-progress-foreground: oklch(0.99 0 0);
+  --status-gate: oklch(0.72 0.15 75);            /* amber */
+  --status-gate-foreground: oklch(0.15 0.02 60);
+  --status-blocked: oklch(0.58 0.22 25);         /* red */
+  --status-blocked-foreground: oklch(0.99 0 0);
+  --status-deferred: oklch(0.55 0.02 245);       /* slate */
+  --status-deferred-foreground: oklch(0.99 0 0);
+  --status-unknown: oklch(0.7 0.02 245);
+  --status-unknown-foreground: oklch(0.15 0.02 245);
+
+  --chart-1: oklch(0.6 0.16 230);
+  --chart-2: oklch(0.62 0.15 155);
+  --chart-3: oklch(0.72 0.15 75);
+  --chart-4: oklch(0.58 0.22 25);
+  --chart-5: oklch(0.55 0.02 245);
+
+  --sidebar: oklch(0.97 0.005 240);
+  --sidebar-foreground: oklch(0.22 0.02 245);
+  --sidebar-primary: oklch(0.55 0.15 230);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.92 0.01 240);
+  --sidebar-accent-foreground: oklch(0.22 0.03 245);
+  --sidebar-border: oklch(0.9 0.01 240);
+  --sidebar-ring: oklch(0.55 0.15 230);
+}
+
+/* Dark theme — deep graphite/navy mission-control */
+.dark {
+  --background: oklch(0.16 0.015 250);           /* deep graphite */
+  --foreground: oklch(0.94 0.01 240);
+
+  --surface-1: oklch(0.2 0.02 250);              /* card base */
+  --surface-2: oklch(0.24 0.025 250);            /* elevated */
+  --surface-3: oklch(0.28 0.03 250);             /* hover / accent */
+  --grid-line: oklch(0.3 0.02 250);
+
+  --card: oklch(0.2 0.02 250);
+  --card-foreground: oklch(0.94 0.01 240);
+  --popover: oklch(0.22 0.022 250);
+  --popover-foreground: oklch(0.94 0.01 240);
+
+  --primary: oklch(0.72 0.16 220);               /* cyan */
+  --primary-foreground: oklch(0.14 0.02 250);
+  --secondary: oklch(0.26 0.025 250);
+  --secondary-foreground: oklch(0.94 0.01 240);
+  --muted: oklch(0.24 0.02 250);
+  --muted-foreground: oklch(0.7 0.02 245);
+  --accent: oklch(0.3 0.04 230);
+  --accent-foreground: oklch(0.94 0.01 240);
+  --destructive: oklch(0.62 0.22 22);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.3 0.02 250);
+  --input: oklch(0.3 0.02 250);
+  --ring: oklch(0.72 0.16 220);
+
+  --status-completed: oklch(0.72 0.15 155);
+  --status-completed-foreground: oklch(0.12 0.02 155);
+  --status-progress: oklch(0.72 0.16 220);
+  --status-progress-foreground: oklch(0.12 0.02 220);
+  --status-gate: oklch(0.78 0.15 75);
+  --status-gate-foreground: oklch(0.15 0.02 60);
+  --status-blocked: oklch(0.68 0.22 22);
+  --status-blocked-foreground: oklch(0.99 0 0);
+  --status-deferred: oklch(0.55 0.02 245);
+  --status-deferred-foreground: oklch(0.98 0 0);
+  --status-unknown: oklch(0.5 0.02 245);
+  --status-unknown-foreground: oklch(0.98 0 0);
+
+  --chart-1: oklch(0.72 0.16 220);
+  --chart-2: oklch(0.72 0.15 155);
+  --chart-3: oklch(0.78 0.15 75);
+  --chart-4: oklch(0.68 0.22 22);
+  --chart-5: oklch(0.6 0.03 245);
+
+  --sidebar: oklch(0.14 0.015 250);
+  --sidebar-foreground: oklch(0.88 0.01 240);
+  --sidebar-primary: oklch(0.72 0.16 220);
+  --sidebar-primary-foreground: oklch(0.14 0.02 250);
+  --sidebar-accent: oklch(0.22 0.025 250);
+  --sidebar-accent-foreground: oklch(0.94 0.01 240);
+  --sidebar-border: oklch(0.26 0.02 250);
+  --sidebar-ring: oklch(0.72 0.16 220);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    background-image:
+      radial-gradient(circle at 12% 8%, color-mix(in oklab, var(--primary) 5%, transparent), transparent 40%),
+      radial-gradient(circle at 92% 100%, color-mix(in oklab, var(--status-completed) 4%, transparent), transparent 45%);
+    background-attachment: fixed;
+  }
+  code, .font-mono, [data-mono] {
+    font-family: var(--font-mono);
+    font-feature-settings: "ss01", "cv01";
+  }
+  ::selection {
+    background-color: color-mix(in oklab, var(--primary) 30%, transparent);
+  }
+}
+
+@utility grid-lines {
+  background-image:
+    linear-gradient(to right, var(--color-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-grid-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.4;
+}
+
+@utility surface-1 {
+  background-color: var(--color-surface-1);
+}
+@utility surface-2 {
+  background-color: var(--color-surface-2);
+}
+@utility surface-3 {
+  background-color: var(--color-surface-3);
+}
+
+@utility elev-1 {
+  background-color: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 1px 0 0 color-mix(in oklab, var(--foreground) 3%, transparent);
+}
+
+@utility elev-2 {
+  background-color: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  box-shadow:
+    0 1px 0 0 color-mix(in oklab, var(--foreground) 3%, transparent),
+    0 12px 40px -20px color-mix(in oklab, var(--primary) 25%, transparent);
+}
+
+@utility scanline {
+  position: relative;
+  overflow: hidden;
+}
+@utility scanline-after {
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--primary) 8%, transparent) 50%, transparent 100%);
+    background-size: 100% 8px;
+    pointer-events: none;
+    opacity: 0.3;
+  }
+}
