@@ -5,15 +5,23 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-chrome";
 import { StatusBadge, ConfidenceChip } from "@/components/status-badges";
-import { dataSource } from "@/data/adapter";
+import { useDataView } from "@/data/scenario-context";
+import { gateSplit } from "@/data/metrics";
 
 export const Route = createFileRoute("/governance")({
   head: () => ({
     meta: [
-      { title: "Governance & Gates · SDD-Core Command Center" },
-      { name: "description", content: "Gate 1 promotion vs Gate 2 implementation authorization made visually explicit. Agent Zero decision queue." },
-      { property: "og:title", content: "Governance & Gates · SDD-Core Command Center" },
-      { property: "og:description", content: "Authority model: Gate 1 promotion never authorizes implementation." },
+      { title: "Governance & Gates · SDD-Core SITREP — Situation Report" },
+      {
+        name: "description",
+        content:
+          "Gate 1 promotion vs Gate 2 implementation authorization made visually explicit. Agent Zero decision queue.",
+      },
+      { property: "og:title", content: "Governance & Gates · SDD-Core SITREP — Situation Report" },
+      {
+        property: "og:description",
+        content: "Authority model: Gate 1 promotion never authorizes implementation.",
+      },
     ],
   }),
   component: GovernancePage,
@@ -31,15 +39,15 @@ const flow = [
 ];
 
 function GovernancePage() {
-  const gates = dataSource.gates();
-  const pkgs = dataSource.workPackages();
-  const decisions = dataSource.decisions();
+  const gates = useDataView().gates;
+  const pkgs = useDataView().workPackages;
+  const decisions = useDataView().decisions;
 
-  const g1 = gates.filter((g) => g.gate === "gate-1");
-  const g2 = gates.filter((g) => g.gate === "gate-2");
-  const mc = gates.filter((g) => g.gate === "maintenance-changes");
+  const { gate1: g1, gate2: g2, maintenanceChanges: mc } = gateSplit(gates);
 
-  const readyNotAuthorized = pkgs.filter((w) => w.status === "awaiting-gate-2" || w.status === "awaiting-decision");
+  const readyNotAuthorized = pkgs.filter(
+    (w) => w.status === "awaiting-gate-2" || w.status === "awaiting-decision",
+  );
 
   return (
     <div className="space-y-6">
@@ -60,11 +68,19 @@ function GovernancePage() {
           <div className="flex flex-wrap items-center gap-1.5">
             {flow.map((f, i) => (
               <div key={f.key} className="flex items-center gap-1.5">
-                <div className={`rounded-md border px-3 py-2 min-w-[100px] ${f.key === "g1" ? "border-status-gate/40 bg-status-gate/8" : f.key === "g2" ? "border-status-blocked/40 bg-status-blocked/8" : "bg-surface-1"}`}>
+                <div
+                  className={`rounded-md border px-3 py-2 min-w-[100px] ${f.key === "g1" ? "border-status-gate/40 bg-status-gate/8" : f.key === "g2" ? "border-status-blocked/40 bg-status-blocked/8" : "bg-surface-1"}`}
+                >
                   <div className="text-xs font-medium">{f.label}</div>
-                  {f.authority && <div className="text-[10px] text-muted-foreground font-mono mt-0.5">{f.authority}</div>}
+                  {f.authority && (
+                    <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                      {f.authority}
+                    </div>
+                  )}
                 </div>
-                {i < flow.length - 1 && <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+                {i < flow.length - 1 && (
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
               </div>
             ))}
           </div>
@@ -72,9 +88,21 @@ function GovernancePage() {
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <GateCard title="Gate 1 · Promotion" icon={<ShieldCheck className="h-4 w-4 text-status-completed" />} events={g1} />
-        <GateCard title="Gate 2 · Implementation" icon={<ShieldQuestion className="h-4 w-4 text-status-gate" />} events={g2} />
-        <GateCard title="Maintenance Changes route" icon={<ShieldCheck className="h-4 w-4 text-primary" />} events={mc} />
+        <GateCard
+          title="Gate 1 · Promotion"
+          icon={<ShieldCheck className="h-4 w-4 text-status-completed" />}
+          events={g1}
+        />
+        <GateCard
+          title="Gate 2 · Implementation"
+          icon={<ShieldQuestion className="h-4 w-4 text-status-gate" />}
+          events={g2}
+        />
+        <GateCard
+          title="Maintenance Changes route"
+          icon={<ShieldCheck className="h-4 w-4 text-primary" />}
+          events={mc}
+        />
       </div>
 
       {/* Ready but not authorized */}
@@ -87,7 +115,9 @@ function GovernancePage() {
         <CardContent className="space-y-2">
           {readyNotAuthorized.map((w) => (
             <div key={w.id} className="flex items-center gap-3 rounded-md border bg-surface-1 p-3">
-              <Badge variant="outline" className="font-mono">{w.id}</Badge>
+              <Badge variant="outline" className="font-mono">
+                {w.id}
+              </Badge>
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium truncate">{w.title}</div>
                 <div className="text-xs text-muted-foreground">{w.nextAction}</div>
@@ -109,7 +139,9 @@ function GovernancePage() {
           {decisions.map((d) => (
             <div key={d.id} className="rounded-md border bg-surface-1 p-4">
               <div className="flex items-start gap-3">
-                <Badge variant="outline" className="font-mono">{d.id}</Badge>
+                <Badge variant="outline" className="font-mono">
+                  {d.id}
+                </Badge>
                 <div className="min-w-0 flex-1">
                   <div className="font-medium">{d.title}</div>
                   <div className="mt-1 text-xs text-muted-foreground">
@@ -117,14 +149,18 @@ function GovernancePage() {
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {d.options.map((o) => (
-                      <Badge key={o} variant="secondary" className="font-normal">{o}</Badge>
+                      <Badge key={o} variant="secondary" className="font-normal">
+                        {o}
+                      </Badge>
                     ))}
                   </div>
                   <div className="mt-2 text-xs text-muted-foreground">Impact: {d.impact}</div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <ConfidenceChip confidence={d.provenance.confidence} />
-                  <Button size="sm" variant="outline" disabled className="h-7 text-xs">Prototype only</Button>
+                  <Button size="sm" variant="outline" disabled className="h-7 text-xs">
+                    Prototype only
+                  </Button>
                 </div>
               </div>
             </div>
@@ -135,7 +171,15 @@ function GovernancePage() {
   );
 }
 
-function GateCard({ title, icon, events }: { title: string; icon: React.ReactNode; events: ReturnType<typeof dataSource.gates> }) {
+function GateCard({
+  title,
+  icon,
+  events,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  events: import("@/data/types").GateEvent[];
+}) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -147,12 +191,19 @@ function GateCard({ title, icon, events }: { title: string; icon: React.ReactNod
         {events.map((g) => (
           <div key={g.id} className="rounded-md border bg-surface-1 p-3">
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="font-mono text-[10px]">{g.workPackageId}</Badge>
-              <Badge className={
-                g.status === "approved" ? "bg-status-completed/15 text-status-completed border-status-completed/30"
-                : g.status === "pending" ? "bg-status-gate/15 text-status-gate border-status-gate/30"
-                : "bg-status-blocked/15 text-status-blocked border-status-blocked/30"
-              } variant="outline">
+              <Badge variant="outline" className="font-mono text-[10px]">
+                {g.workPackageId}
+              </Badge>
+              <Badge
+                className={
+                  g.status === "approved"
+                    ? "bg-status-completed/15 text-status-completed border-status-completed/30"
+                    : g.status === "pending"
+                      ? "bg-status-gate/15 text-status-gate border-status-gate/30"
+                      : "bg-status-blocked/15 text-status-blocked border-status-blocked/30"
+                }
+                variant="outline"
+              >
                 {g.status}
               </Badge>
             </div>

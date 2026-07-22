@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================================
- * SDD-Core Command Center — Mission Control design tokens
+ * SDD-Core SITREP — Situation Report — Mission Control design tokens
  * Dark-first. Deep graphite/navy surfaces. Semantic status colors.
  * ============================================================ */
 
@@ -93,7 +93,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.02 245);
 
-  --primary: oklch(0.55 0.15 230);      /* cyan/blue — active */
+  --primary: oklch(0.55 0.15 230); /* cyan/blue — active */
   --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.94 0.008 240);
   --secondary-foreground: oklch(0.22 0.03 245);
@@ -107,15 +107,15 @@
   --input: oklch(0.9 0.01 240);
   --ring: oklch(0.55 0.15 230);
 
-  --status-completed: oklch(0.62 0.15 155);      /* emerald */
+  --status-completed: oklch(0.62 0.15 155); /* emerald */
   --status-completed-foreground: oklch(0.99 0 0);
-  --status-progress: oklch(0.6 0.16 230);        /* cyan */
+  --status-progress: oklch(0.6 0.16 230); /* cyan */
   --status-progress-foreground: oklch(0.99 0 0);
-  --status-gate: oklch(0.72 0.15 75);            /* amber */
+  --status-gate: oklch(0.72 0.15 75); /* amber */
   --status-gate-foreground: oklch(0.15 0.02 60);
-  --status-blocked: oklch(0.58 0.22 25);         /* red */
+  --status-blocked: oklch(0.58 0.22 25); /* red */
   --status-blocked-foreground: oklch(0.99 0 0);
-  --status-deferred: oklch(0.55 0.02 245);       /* slate */
+  --status-deferred: oklch(0.55 0.02 245); /* slate */
   --status-deferred-foreground: oklch(0.99 0 0);
   --status-unknown: oklch(0.7 0.02 245);
   --status-unknown-foreground: oklch(0.15 0.02 245);
@@ -138,12 +138,12 @@
 
 /* Dark theme — deep graphite/navy mission-control */
 .dark {
-  --background: oklch(0.16 0.015 250);           /* deep graphite */
+  --background: oklch(0.16 0.015 250); /* deep graphite */
   --foreground: oklch(0.94 0.01 240);
 
-  --surface-1: oklch(0.2 0.02 250);              /* card base */
-  --surface-2: oklch(0.24 0.025 250);            /* elevated */
-  --surface-3: oklch(0.28 0.03 250);             /* hover / accent */
+  --surface-1: oklch(0.2 0.02 250); /* card base */
+  --surface-2: oklch(0.24 0.025 250); /* elevated */
+  --surface-3: oklch(0.28 0.03 250); /* hover / accent */
   --grid-line: oklch(0.3 0.02 250);
 
   --card: oklch(0.2 0.02 250);
@@ -151,7 +151,7 @@
   --popover: oklch(0.22 0.022 250);
   --popover-foreground: oklch(0.94 0.01 240);
 
-  --primary: oklch(0.72 0.16 220);               /* cyan */
+  --primary: oklch(0.72 0.16 220); /* cyan */
   --primary-foreground: oklch(0.14 0.02 250);
   --secondary: oklch(0.26 0.025 250);
   --secondary-foreground: oklch(0.94 0.01 240);
@@ -207,11 +207,21 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     background-image:
-      radial-gradient(circle at 12% 8%, color-mix(in oklab, var(--primary) 5%, transparent), transparent 40%),
-      radial-gradient(circle at 92% 100%, color-mix(in oklab, var(--status-completed) 4%, transparent), transparent 45%);
+      radial-gradient(
+        circle at 12% 8%,
+        color-mix(in oklab, var(--primary) 5%, transparent),
+        transparent 40%
+      ),
+      radial-gradient(
+        circle at 92% 100%,
+        color-mix(in oklab, var(--status-completed) 4%, transparent),
+        transparent 45%
+      );
     background-attachment: fixed;
   }
-  code, .font-mono, [data-mono] {
+  code,
+  .font-mono,
+  [data-mono] {
     font-family: var(--font-mono);
     font-feature-settings: "ss01", "cv01";
   }
@@ -261,7 +271,12 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--primary) 8%, transparent) 50%, transparent 100%);
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      color-mix(in oklab, var(--primary) 8%, transparent) 50%,
+      transparent 100%
+    );
     background-size: 100% 8px;
     pointer-events: none;
     opacity: 0.3;

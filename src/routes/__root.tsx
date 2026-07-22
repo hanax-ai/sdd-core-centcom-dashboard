@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { TopBar } from "@/components/top-bar";
+import { ScenarioProvider } from "@/data/scenario-context";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -20,7 +21,9 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <div className="font-mono text-[11px] uppercase tracking-widest text-primary">Route unmatched</div>
+        <div className="font-mono text-[11px] uppercase tracking-widest text-primary">
+          Route unmatched
+        </div>
         <h1 className="mt-2 text-7xl font-semibold tabular-nums">404</h1>
         <p className="mt-4 text-sm text-muted-foreground">
           The path is not registered in this dashboard.
@@ -45,7 +48,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <div className="font-mono text-[11px] uppercase tracking-widest text-status-blocked">Render fault</div>
+        <div className="font-mono text-[11px] uppercase tracking-widest text-status-blocked">
+          Render fault
+        </div>
         <h1 className="mt-2 text-xl font-semibold tracking-tight">This page didn't load</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           A component failed to render. Retry re-runs the loader.
@@ -74,14 +79,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SDD-Core Command Center" },
+      { title: "SDD-Core SITREP — Situation Report" },
       {
         name: "description",
         content:
           "Evidence-backed implementation control plane for the SDD-Core framework: plan progress, governance gates, defects, verification, and evidence — at a glance.",
       },
-      { name: "author", content: "SDD-Core Command Center" },
-      { property: "og:title", content: "SDD-Core Command Center" },
+      { name: "author", content: "SDD-Core SITREP — Situation Report" },
+      { property: "og:title", content: "SDD-Core SITREP — Situation Report" },
       {
         property: "og:description",
         content: "Executive command center for the SDD-Core implementation — read-only.",
@@ -125,18 +130,30 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full">
-          <AppSidebar />
-          <SidebarInset className="min-w-0">
-            <TopBar />
-            <main className="flex-1 p-4 sm:p-6 lg:p-8">
-              <Outlet />
-            </main>
-          </SidebarInset>
-        </div>
-        <Toaster />
-      </SidebarProvider>
+      <ScenarioProvider>
+        <SidebarProvider>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+          >
+            Skip to main content
+          </a>
+          <div className="flex min-h-screen w-full">
+            <AppSidebar />
+            <SidebarInset className="min-w-0">
+              <TopBar />
+              <main
+                id="main-content"
+                tabIndex={-1}
+                className="flex-1 p-4 sm:p-6 lg:p-8 focus:outline-none"
+              >
+                <Outlet />
+              </main>
+            </SidebarInset>
+          </div>
+          <Toaster />
+        </SidebarProvider>
+      </ScenarioProvider>
     </QueryClientProvider>
   );
 }

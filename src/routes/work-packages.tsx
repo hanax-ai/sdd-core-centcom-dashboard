@@ -2,27 +2,47 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Download, LayoutGrid, Table as TableIcon } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import {
-  Card, CardContent, CardHeader, CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { PageHeader } from "@/components/page-chrome";
 import { StatusBadge, ConfidenceChip } from "@/components/status-badges";
-import { dataSource } from "@/data/adapter";
 import type { WorkPackage, WorkStatus } from "@/data/types";
+import { useDataView } from "@/data/scenario-context";
+import { useUrlSearchParam } from "@/hooks/use-url-state";
+import { useHighlight } from "@/hooks/use-highlight";
 
 export const Route = createFileRoute("/work-packages")({
   head: () => ({
     meta: [
-      { title: "Work Packages · SDD-Core Command Center" },
-      { name: "description", content: "Normalized work packages with gates, dependencies, defects and evidence — table and kanban views." },
-      { property: "og:title", content: "Work Packages · SDD-Core Command Center" },
-      { property: "og:description", content: "Filter, sort and inspect work packages with full provenance." },
+      { title: "Work Packages · SDD-Core SITREP — Situation Report" },
+      {
+        name: "description",
+        content:
+          "Normalized work packages with gates, dependencies, defects and evidence — table and kanban views.",
+      },
+      { property: "og:title", content: "Work Packages · SDD-Core SITREP — Situation Report" },
+      {
+        property: "og:description",
+        content: "Filter, sort and inspect work packages with full provenance.",
+      },
     ],
   }),
   component: WorkPackagesPage,
@@ -39,16 +59,22 @@ const kanbanCols: { key: WorkStatus; label: string }[] = [
 ];
 
 function WorkPackagesPage() {
-  const pkgs = dataSource.workPackages();
-  const [view, setView] = useState<"table" | "kanban">("table");
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<string>("all");
+  const pkgs = useDataView().workPackages;
+  const [view, setView] = useUrlSearchParam<"table" | "kanban">(
+    "view",
+    "table",
+    (v): v is "table" | "kanban" => v === "table" || v === "kanban",
+  );
+  const [query, setQuery] = useUrlSearchParam<string>("q", "");
+  const [status, setStatus] = useUrlSearchParam<string>("status", "all");
   const [selected, setSelected] = useState<WorkPackage | null>(null);
+  const { isHighlighted, highlightRef } = useHighlight();
 
   const filtered = useMemo(() => {
     return pkgs.filter((w) => {
       if (status !== "all" && w.status !== status) return false;
-      if (query && !`${w.id} ${w.title} ${w.owner}`.toLowerCase().includes(query.toLowerCase())) return false;
+      if (query && !`${w.id} ${w.title} ${w.owner}`.toLowerCase().includes(query.toLowerCase()))
+        return false;
       return true;
     });
   }, [pkgs, status, query]);
@@ -57,14 +83,25 @@ function WorkPackagesPage() {
     const rows = [
       ["ID", "Title", "Status", "Priority", "Owner", "Gate", "ACC", "Evidence", "Last activity"],
       ...filtered.map((w) => [
-        w.id, w.title, w.status, w.priority, w.owner, w.gateRequirement,
-        `${w.acceptancePassed}/${w.acceptanceTotal}`, w.evidenceCount, w.lastActivityAt,
+        w.id,
+        w.title,
+        w.status,
+        w.priority,
+        w.owner,
+        w.gateRequirement,
+        `${w.acceptancePassed}/${w.acceptanceTotal}`,
+        w.evidenceCount,
+        w.lastActivityAt,
       ]),
     ];
-    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const csv = rows
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
     const a = document.createElement("a");
-    a.href = url; a.download = "work-packages.csv"; a.click();
+    a.href = url;
+    a.download = "work-packages.csv";
+    a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -79,12 +116,24 @@ function WorkPackagesPage() {
             <Button variant="outline" size="sm" onClick={exportCsv} className="gap-1.5">
               <Download className="h-3.5 w-3.5" /> Export CSV
             </Button>
-            <div className="flex rounded-md border p-0.5">
-              <Button variant={view === "table" ? "secondary" : "ghost"} size="sm" onClick={() => setView("table")} className="h-7 gap-1">
-                <TableIcon className="h-3.5 w-3.5" /> Table
+            <div className="flex rounded-md border p-0.5" role="group" aria-label="View mode">
+              <Button
+                variant={view === "table" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setView("table")}
+                className="h-7 gap-1"
+                aria-pressed={view === "table"}
+              >
+                <TableIcon className="h-3.5 w-3.5" aria-hidden="true" /> Table
               </Button>
-              <Button variant={view === "kanban" ? "secondary" : "ghost"} size="sm" onClick={() => setView("kanban")} className="h-7 gap-1">
-                <LayoutGrid className="h-3.5 w-3.5" /> Kanban
+              <Button
+                variant={view === "kanban" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setView("kanban")}
+                className="h-7 gap-1"
+                aria-pressed={view === "kanban"}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" aria-hidden="true" /> Kanban
               </Button>
             </div>
           </div>
@@ -94,10 +143,12 @@ function WorkPackagesPage() {
       <div className="flex flex-wrap gap-2 items-center">
         <Input
           placeholder="Search by ID, title, owner…"
+          aria-label="Search work packages by ID, title, or owner"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="h-8 w-64 font-mono text-xs"
         />
+
         <Select value={status} onValueChange={setStatus}>
           <SelectTrigger className="h-8 w-56 text-xs">
             <SelectValue />
@@ -105,11 +156,15 @@ function WorkPackagesPage() {
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
             {kanbanCols.map((c) => (
-              <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>
+              <SelectItem key={c.key} value={c.key}>
+                {c.label}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <span className="text-xs text-muted-foreground font-mono ml-auto">{filtered.length} of {pkgs.length}</span>
+        <span className="text-xs text-muted-foreground font-mono ml-auto">
+          {filtered.length} of {pkgs.length}
+        </span>
       </div>
 
       {view === "table" ? (
@@ -130,16 +185,36 @@ function WorkPackagesPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map((w) => (
-                  <TableRow key={w.id} onClick={() => setSelected(w)} className="cursor-pointer">
+                  <TableRow
+                    key={w.id}
+                    ref={highlightRef(w.id) as unknown as React.Ref<HTMLTableRowElement>}
+                    onClick={() => setSelected(w)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelected(w);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Open work package ${w.id}: ${w.title}`}
+                    className={`cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${isHighlighted(w.id) ? "ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/5" : ""}`}
+                  >
                     <TableCell className="font-mono text-xs text-primary">{w.id}</TableCell>
                     <TableCell className="max-w-md truncate">{w.title}</TableCell>
-                    <TableCell><StatusBadge status={w.status} /></TableCell>
+                    <TableCell>
+                      <StatusBadge status={w.status} />
+                    </TableCell>
                     <TableCell className="text-xs">{w.owner}</TableCell>
-                    <TableCell className="text-xs uppercase font-mono">{w.gateRequirement}</TableCell>
+                    <TableCell className="text-xs uppercase font-mono">
+                      {w.gateRequirement}
+                    </TableCell>
                     <TableCell className="text-right font-mono text-xs">
                       {w.acceptancePassed}/{w.acceptanceTotal}
                     </TableCell>
-                    <TableCell className="text-right font-mono text-xs">{w.evidenceCount}</TableCell>
+                    <TableCell className="text-right font-mono text-xs">
+                      {w.evidenceCount}
+                    </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(w.lastActivityAt), { addSuffix: true })}
                     </TableCell>
@@ -160,29 +235,38 @@ function WorkPackagesPage() {
                     <CardTitle className="text-[11px] uppercase tracking-widest text-muted-foreground">
                       {c.label}
                     </CardTitle>
-                    <Badge variant="outline" className="font-mono">{col.length}</Badge>
+                    <Badge variant="outline" className="font-mono">
+                      {col.length}
+                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {col.map((w) => (
                     <button
                       key={w.id}
+                      ref={highlightRef(w.id) as unknown as React.Ref<HTMLButtonElement>}
                       onClick={() => setSelected(w)}
-                      className="w-full text-left rounded-md border bg-card p-3 hover:elev-2 transition-shadow"
+                      className={`w-full text-left rounded-md border bg-card p-3 hover:elev-2 transition-shadow ${isHighlighted(w.id) ? "ring-2 ring-primary" : ""}`}
                     >
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-[11px] text-primary">{w.id}</span>
-                        <span className="ml-auto text-[10px] uppercase font-mono text-muted-foreground">{w.priority}</span>
+                        <span className="ml-auto text-[10px] uppercase font-mono text-muted-foreground">
+                          {w.priority}
+                        </span>
                       </div>
                       <div className="mt-1 text-sm">{w.title}</div>
                       <div className="mt-2 flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
-                        <span>ACC {w.acceptancePassed}/{w.acceptanceTotal}</span>
+                        <span>
+                          ACC {w.acceptancePassed}/{w.acceptanceTotal}
+                        </span>
                         <span>EV {w.evidenceCount}</span>
                       </div>
                     </button>
                   ))}
                   {col.length === 0 && (
-                    <div className="text-xs text-muted-foreground italic py-4 text-center">Empty</div>
+                    <div className="text-xs text-muted-foreground italic py-4 text-center">
+                      Empty
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -197,7 +281,9 @@ function WorkPackagesPage() {
             <>
               <SheetHeader>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="font-mono">{selected.id}</Badge>
+                  <Badge variant="outline" className="font-mono">
+                    {selected.id}
+                  </Badge>
                   <StatusBadge status={selected.status} />
                 </div>
                 <SheetTitle className="text-xl leading-snug">{selected.title}</SheetTitle>
@@ -209,15 +295,22 @@ function WorkPackagesPage() {
                   <Field label="Operating agent" value={selected.operatingAgent} />
                   <Field label="Priority" value={selected.priority.toUpperCase()} />
                   <Field label="Gate" value={selected.gateRequirement} />
-                  <Field label="Acceptance" value={`${selected.acceptancePassed}/${selected.acceptanceTotal}`} />
+                  <Field
+                    label="Acceptance"
+                    value={`${selected.acceptancePassed}/${selected.acceptanceTotal}`}
+                  />
                   <Field label="Evidence" value={String(selected.evidenceCount)} />
                 </div>
                 <div>
-                  <div className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Next action</div>
+                  <div className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">
+                    Next action
+                  </div>
                   <div className="rounded-md border bg-surface-2 p-3">{selected.nextAction}</div>
                 </div>
                 <div>
-                  <div className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">Provenance</div>
+                  <div className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1">
+                    Provenance
+                  </div>
                   <div className="rounded-md border bg-surface-2 p-3 space-y-1 text-xs font-mono">
                     <div>source: {selected.provenance.sourceType}</div>
                     <div>revision: {selected.provenance.sourceRevision?.slice(0, 12)}</div>
