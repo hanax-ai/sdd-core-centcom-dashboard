@@ -1,4 +1,4 @@
 {
-"probe": "deliberate formatting violation for WO-P2-PRE-2 control-effectiveness test",
-    "expect":   "Dashboard CI / required fails at format:check"
+  "probe": "deliberate formatting violation for WO-P2-PRE-2 control-effectiveness test",
+  "expect": "Dashboard CI / required fails at format:check"
 }
