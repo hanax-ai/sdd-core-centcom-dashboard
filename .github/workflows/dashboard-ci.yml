@@ -1,0 +1,60 @@
+name: Dashboard CI
+
+# WO-P2-PRE-2-CI-001 — enforceable quality gate for the dashboard.
+# Local validation is evidence; this workflow is enforcement.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege: ordinary PR validation needs no write scopes and no secrets.
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same ref (e.g. new pushes to an open PR).
+concurrency:
+  group: dashboard-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Stable, required aggregate status: "Dashboard CI / required".
+  # Runs the SAME canonical command used locally by every agent and developer.
+  required:
+    name: required
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install dependencies (clean, from committed lockfile)
+        run: npm ci
+      # `verify` runs the formatting check FIRST and fails fast, so a formatting
+      # or line-ending failure is reported as formatting — not as code defects.
+      - name: Verify (format, lint, typecheck, test, build, generated-file)
+        run: npm run verify
+
+  # Advisory only. Not part of the required status until separately promoted.
+  windows-advisory:
+    name: windows-advisory
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install dependencies (clean, from committed lockfile)
+        run: npm ci
+      - name: Verify (advisory)
+        run: npm run verify

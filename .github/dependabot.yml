@@ -1,0 +1,23 @@
+version: 2
+
+# Deliberate, low-frequency dependency-update plan for the dashboard.
+# npm updates keep the committed lockfile current; github-actions updates keep
+# the SHA-pinned actions in the workflows current (Dependabot bumps the pin and
+# updates the version comment).
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions

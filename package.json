@@ -8,12 +8,15 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 8",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest",
     "test:run": "vitest run",
     "test:ci": "vitest run --reporter=default",
-    "typecheck": "tsgo --noEmit"
+    "typecheck": "tsgo --noEmit",
+    "verify:generated": "git diff --exit-code -- src/routeTree.gen.ts",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test:ci && npm run build && npm run verify:generated"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
