@@ -1,12 +1,31 @@
-# Dashboard `main` Branch-Protection Ruleset — PREPARED, NOT ACTIVATED
+# Dashboard `main` Branch-Protection Ruleset — ACTIVE, REQUIRED-CHECK BINDING PENDING
 
 **Work order:** WO-P2-PRE-2-CI-001
-**Status:** Prepared recommendation. **Do not activate or alter without explicit Agent Zero authorization.**
-Workflow code (this branch) and ruleset configuration are **separate controls** and are approved separately.
+**Status:** Ruleset `main-branch-protection` is **Active** (activation authorized). One control
+remains **incomplete**: the required status check is **not correctly bound**. The Merge button
+is currently jammed by a phantom required entry (see "Known defect" below), and the gate does
+not yet gate on the real `Dashboard CI / required` result. The CI completion handoff stays
+blocked until the binding is corrected and deny/allow is re-proven.
+Workflow code and ruleset configuration are **separate controls** and are approved separately.
 
-This document specifies the exact GitHub ruleset to apply to `main` **after** the
-`Dashboard CI / required` status has demonstrated stable operation and activation is
-separately authorized.
+This document specifies the exact GitHub ruleset for `main` and the procedure to correct the
+required-check binding.
+
+## Known defect — required-check binding (2026-07-22)
+
+The ruleset currently shows a phantom required entry: **"Dashboard CI / required — Expected —
+Waiting for status to be reported (Required)"**, separate from the real reported check. This is
+the free-typed-binding failure described in the activation procedure below: the required context
+string does not match what GitHub Actions reports, so it never resolves — it blocks every merge
+while failing to gate on the real result.
+
+**Correction:** In **Require status checks to pass**, remove the current entry and re-add
+`Dashboard CI / required` by **selecting it from the search dropdown of observed checks** (do not
+free-type). `main` and open PRs have already reported this check, so it appears in the dropdown.
+
+**Evidence correction:** The merge-block observed during the initial probe came from
+**Require conversation resolution**, not the status check. The status-check deny/allow proof is
+therefore **not yet valid** and must be re-run after the binding is corrected.
 
 ## Target
 
