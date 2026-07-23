@@ -66,7 +66,7 @@ do **not** toggle enforcement off/on — that risks a duplicate or a coverage ga
 ruleset in place and correct **only** the status-check binding.
 
 1. Open the existing ruleset for editing: **Settings → Rules → Rulesets → `main-branch-protection`**. Confirm you are editing this ruleset in place; do not choose "New branch ruleset".
-2. Under **Require status checks to pass**, **remove** the current `Dashboard CI / required` entry (the phantom "Expected — waiting for status to be reported" binding) and re-add it by **selecting `Dashboard CI / required` from the search dropdown of already-observed checks** (do not free-type the string) so it binds to the correct GitHub Actions source. A free-typed entry sits permanently as "Expected — waiting for status to be reported" and blocks every merge even when the real check passes.
+2. Under **Require status checks to pass**, **remove** the current `Dashboard CI / required` entry (the phantom "Expected — waiting for status to be reported" binding) and re-add it by **selecting `Dashboard CI / required` from the search dropdown of already-observed checks** (do not free-type the string) so it binds to the correct GitHub Actions source. A free-typed entry sits permanently as "Expected — waiting for status to be reported" and blocks every merge even when the real check passes. Then set the check's **source to GitHub Actions** (not "Any source") so only the `Dashboard CI` workflow's result can satisfy the gate — this prevents another integration reporting a same-named status from bypassing enforcement.
 3. Leave **Enforcement status** as **Active** and **Save changes**. Do not disable/re-enable or duplicate the ruleset.
 4. Re-run a control-effectiveness test that isolates the **status check** from other blockers. Before testing, put the probe PR in a state where the status check is the ONLY thing that can block merge: **resolve all review conversations** and bring the branch **up to date with `main`** (satisfy `Require conversation resolution` and `Require branches to be up to date`). Then:
    - **Deny case:** push a commit with a deliberate `format:check` violation. Confirm `Dashboard CI / required` reports **failing**, and confirm the merge is blocked **by the status check specifically** — read the branch-protection message and verify it names `Required check "Dashboard CI / required" is expected/failing` (or the red required-check row), not "unresolved conversations" or "out-of-date branch". Record that explicit reason.
@@ -85,7 +85,7 @@ procedure** above instead.
 
 1. Confirm `Dashboard CI / required` has produced at least one green run on `main` and on a PR.
 2. Create the ruleset via **Settings → Rules → Rulesets → New branch ruleset** (or the equivalent API), using the **Recommended ruleset settings** above.
-3. Under **Require status checks to pass**, add **only** `Dashboard CI / required` by **selecting it from the search dropdown of already-observed checks** (do not free-type the string).
+3. Under **Require status checks to pass**, add **only** `Dashboard CI / required` by **selecting it from the search dropdown of already-observed checks** (do not free-type the string), then set its **source to GitHub Actions** (not "Any source").
 4. Set the ruleset **Enforcement status** to **Active** (not `Disabled` or `Evaluate`).
 
 ## Rationale
