@@ -15,16 +15,18 @@ separately authorized.
 
 ## Recommended ruleset settings
 
-| Setting                                          | Value                 | Notes                                                         |
-| ------------------------------------------------ | --------------------- | ------------------------------------------------------------- |
-| Require a pull request before merging            | **On**                | No direct pushes to `main`.                                   |
-| Require status checks to pass                    | **On**                | Add exactly **`Dashboard CI / required`**.                    |
-| Require branches to be up to date before merging | **On**                | Branch must be current with `main`.                           |
-| Require conversation resolution before merging   | **On**                | Unresolved review threads block merge.                        |
-| Block force pushes                               | **On**                |                                                               |
-| Restrict deletions (block branch deletion)       | **On**                |                                                               |
-| Allow bypass of failed required checks           | **Off**               | No routine bypass.                                            |
-| Merge method                                     | **Preserve existing** | Do not change the repo's merge-commit workflow under this WO. |
+| Setting                                          | Value   | Notes                                      |
+| ------------------------------------------------ | ------- | ------------------------------------------ |
+| Require a pull request before merging            | **On**  | No direct pushes to `main`.                |
+| Require status checks to pass                    | **On**  | Add exactly **`Dashboard CI / required`**. |
+| Require branches to be up to date before merging | **On**  | Branch must be current with `main`.        |
+| Require conversation resolution before merging   | **On**  | Unresolved review threads block merge.     |
+| Block force pushes                               | **On**  |                                            |
+| Restrict deletions (block branch deletion)       | **On**  |                                            |
+| Allow bypass of failed required checks           | **Off** | No routine bypass.                         |
+
+**Merge method:** Not governed by this ruleset. Preserve the repository's existing
+merge-commit workflow; do not change it under this WO.
 
 ### Required status checks — include ONLY
 
@@ -43,8 +45,9 @@ Dashboard CI / required
 1. Confirm `Dashboard CI / required` has produced at least one green run on `main` and on a PR.
 2. Create the ruleset above via **Settings → Rules → Rulesets → New branch ruleset** (or the equivalent API).
 3. Add **only** `Dashboard CI / required` to the required checks list.
-4. Run the control-effectiveness test in the launch packet §5 (deliberate-failure PR) to prove deny/allow behavior.
-5. Record activation and test evidence in the coordinator handoff.
+4. Set the ruleset **Enforcement status** to **Active** (not `Disabled` or `Evaluate`) so the controls take effect.
+5. Run the control-effectiveness test in the launch packet §5 (deliberate-failure PR) to prove deny/allow behavior.
+6. Record activation and test evidence in the coordinator handoff.
 
 ## Rationale
 
