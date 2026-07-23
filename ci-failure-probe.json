@@ -1,4 +1,4 @@
 {
-"probe": "deliberate formatting violation for WO-P2-PRE-2 merge-block proof",
-    "expect":   "ruleset blocks Merge button while Dashboard CI / required is red"
+  "probe": "deliberate formatting violation for WO-P2-PRE-2 merge-block proof",
+  "expect": "ruleset blocks Merge button while Dashboard CI / required is red"
 }
