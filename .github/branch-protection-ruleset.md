@@ -36,17 +36,17 @@ Dashboard CI / required
 
 ### Explicitly NOT required (advisory) at activation time
 
-- `Dashboard CI / windows-advisory` — promote to required only after stable operation and separate approval (§3.4).
-- `Dependency Review / dependency-review` — advisory; depends on the Dependency Graph feature.
-- `Dependency Audit / npm-audit` — scheduled/manual only; network-dependent, never a required gate (§3.5).
+- `Dashboard CI / windows-advisory` — promote to required only after it has demonstrated stable operation and received separate approval; do not add it to the required set at initial activation.
+- `Dependency Review / dependency-review` — advisory; depends on the repository Dependency Graph feature being enabled.
+- `Dependency Audit / npm-audit` — scheduled/manual only; it is network-dependent (reaches the advisory database), so it must never be a required merge gate.
 
 ## Activation procedure (when separately authorized)
 
 1. Confirm `Dashboard CI / required` has produced at least one green run on `main` and on a PR.
 2. Create the ruleset above via **Settings → Rules → Rulesets → New branch ruleset** (or the equivalent API).
-3. Add **only** `Dashboard CI / required` to the required checks list.
+3. Under **Require status checks to pass**, add **only** the `Dashboard CI / required` check by **selecting it from the search dropdown of already-observed checks** (do not free-type the string) so it binds to the correct GitHub Actions source. A free-typed entry sits permanently as "Expected — waiting for status to be reported" and blocks every merge even when the real check passes.
 4. Set the ruleset **Enforcement status** to **Active** (not `Disabled` or `Evaluate`) so the controls take effect.
-5. Run the control-effectiveness test in the launch packet §5 (deliberate-failure PR) to prove deny/allow behavior.
+5. Run a control-effectiveness test to prove deny/allow behavior: open a PR containing a deliberate `format:check` violation, confirm `Dashboard CI / required` fails and the ruleset blocks the Merge button; then correct the violation, confirm the check passes and the Merge button unblocks. Do not merge the probe — close the PR and delete its branch afterward.
 6. Record activation and test evidence in the coordinator handoff.
 
 ## Rationale
